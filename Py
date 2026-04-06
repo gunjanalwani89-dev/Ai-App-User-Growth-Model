@@ -1,0 +1,76 @@
+import streamlit as st
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Logistic Growth Function
+def logistic_growth(t, K, r, U0):
+    return K / (1 + ((K - U0) / U0) * np.exp(-r * t))
+
+# Title
+st.title("📈 AI App User Growth Model (Logistic)")
+
+st.write("This app simulates user growth using a logistic growth model.")
+
+# Sidebar Inputs
+st.sidebar.header("Input Parameters")
+
+K = st.sidebar.number_input("Carrying Capacity (Max Users)", value=10000)
+r = st.sidebar.slider("Growth Rate", 0.01, 1.0, 0.1)
+U0 = st.sidebar.number_input("Initial Users", value=200)
+churn_rate = st.sidebar.slider("Churn Rate", 0.0, 0.5, 0.1)
+months = st.sidebar.slider("Time Period (Months)", 1, 36, 24)
+
+# Time range
+t = np.arange(0, months, 1)
+
+# Model calculations
+U = logistic_growth(t, K, r, U0)
+new_users = np.diff(U, prepend=U0)
+dropped_users = U * churn_rate
+active_users = U - dropped_users
+
+# Display Results
+st.subheader("📊 Key Results")
+
+st.write(f"Users after 6 months: {int(U[6]) if months > 6 else 'N/A'}")
+st.write(f"Users after 12 months: {int(U[12]) if months > 12 else 'N/A'}")
+st.write(f"Users after {months} months: {int(U[-1])}")
+
+# Plot Graph
+st.subheader("📉 Growth Visualization")
+
+fig, ax = plt.subplots(figsize=(10,6))
+ax.plot(t, U, label='Total Users', color='blue')
+ax.plot(t, active_users, label='Active Users', color='green')
+ax.plot(t, dropped_users, '--', label='Dropped Users', color='red')
+
+ax.set_xlabel("Time (Months)")
+ax.set_ylabel("Number of Users")
+ax.set_title("AI App User Growth (Logistic Model)")
+ax.legend()
+ax.grid()
+
+st.pyplot(fig)
+
+# Data Table
+st.subheader("📋 Data Table")
+
+import pandas as pd
+df = pd.DataFrame({
+    "Month": t,
+    "Total Users": U.astype(int),
+    "Active Users": active_users.astype(int),
+    "Dropped Users": dropped_users.astype(int)
+})
+
+st.write(df)
+
+# Insight Section
+st.subheader("💡 Insights")
+
+st.write("""
+- Growth starts fast and slows down near carrying capacity.
+- Higher growth rate increases early adoption.
+- Higher churn reduces active users significantly.
+- This model reflects real-world AI app growth trends.
+""")
